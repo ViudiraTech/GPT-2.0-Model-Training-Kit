@@ -9,6 +9,10 @@ import numpy as np # 导入NumPy库，一个用于科学计算的库，常用于
 import time # 导入time模块，用于获取时间信息，常用于性能测试
 from tqdm import tqdm # 从tqdm库导入进度条工具，用于在控制台显示进度信息
 import os # 导入os模块，用于与操作系统交互，如文件路径操作等
+import matplotlib.pyplot as plt  # 导入matplotlib用于绘图
+
+# 在脚本顶部定义一个列表来存储损失值
+loss_values = []
 
 # 打印程序标题
 print('GPT-2.0语言模型训练程序\n')
@@ -118,8 +122,7 @@ def train_step(model, data_loader, optimizer, criterion, clip=1, print_every=Non
     
     # 初始化打印损失的累积变量
     print_loss_total = 0  # 用于记录每个打印周期内的损失总和
-    
-    # 初始化一个周期内的损失变量
+    print_loss_avg = 0    # 初始化平均损失为0
     epoch_loss = 0
     
     # 使用tqdm库美化进度条输出
@@ -156,14 +159,18 @@ def train_step(model, data_loader, optimizer, criterion, clip=1, print_every=Non
         # 根据计算出的梯度更新模型的参数
         optimizer.step()
         
-        # 如果print_every不为0，并且当前批次数满足打印条件，则打印平均损失
-        if print_every and (i + 1) % print_every == 0:
-            print_loss_avg = print_loss_total / print_every  # 计算打印周期内的平均损失
-            print_loss_total = 0  # 重置打印周期内的损失累积
-            print('\tCurrent Loss: %.4f' % print_loss_avg)  # 打印当前平均损失
+        # 计算当前批次的平均损失
+        print_loss_total += loss.item()
+        epoch_loss += loss.item()
+        batch_loss_avg = print_loss_total / (i + 1)
         
-    # 返回该epoch的平均损失
-    return epoch_loss / len(data_loader)
+        # 如果满足打印条件，则打印平均损失
+        if print_every and (i + 1) % print_every == 0:
+            print_loss_avg = batch_loss_avg  # 更新平均损失值
+            print(f'\tCurrent Loss: {print_loss_avg:.4f}')  # 打印当前平均损失
+        
+    # 返回该epoch的平均损失和打印周期内的平均损失
+    return epoch_loss / len(data_loader), print_loss_avg if print_loss_avg != 0 else epoch_loss / len(data_loader)
 
 # 定义训练函数train，输入参数包括模型model和数据加载器data_loader
 def train(model, data_loader):
@@ -187,6 +194,9 @@ def train(model, data_loader):
         # 执行单个训练步骤并获取训练损失
         train_loss = train_step(model, data_loader, optimizer, criterion, CLIP, print_every=10)
 
+        train_loss, avg_loss = train_step(model, data_loader, optimizer, criterion, CLIP, print_every=10)
+        loss_values.append(avg_loss)  # 收集损失值
+
         # 记录当前epoch结束时间
         end_time = time.time()
 
@@ -199,6 +209,16 @@ def train(model, data_loader):
 
         # 输出训练损失信息
         print(f'\tTrain Loss: {train_loss:.3f}')
+
+# 在训练完成后绘制损失曲线
+def plot_loss_curve():
+    plt.figure(figsize=(10, 5))  # 创建一个新的图形
+    plt.plot(loss_values, label='Training loss')  # 绘制损失曲线
+    plt.title('Training Loss Over Epochs')  # 添加标题
+    plt.xlabel('Epoch')  # 添加x轴标签
+    plt.ylabel('Loss')  # 添加y轴标签
+    plt.legend()  # 显示图例
+    plt.show()  # 显示图形
 
 # 定义一个函数，用于打印模型的总参数数量和可训练参数数量
 def print_num_parameters(model):
@@ -228,12 +248,12 @@ if __name__ == '__main__':
     train_num_data = [[word2id[word] for word in line] for line in train_data]
 
     # 从用户那里获取每次迭代中用于训练的样本数量
-    batch_size_input = input("每次迭代（每次传递）中用于训练的样本数量:")
+    batch_size_input = input("每次迭代中用于训练的样本数量(batch_size):")
     # 将输入的字符串转换为整数
     batch_size = int(batch_size_input)
     
     # 从用户那里获取整个训练数据集被完整遍历和用于训练的次数
-    epochs_size_input = input("整个训练数据集被完整遍历和用于训练的次数:")
+    epochs_size_input = input("整个训练数据集被完整遍历和用于训练的次数(epochs):")
     # 将输入的字符串转换为整数
     epochs = int(epochs_size_input)
     print()  # 打印一个空行，为了更好的输出格式
@@ -256,6 +276,9 @@ if __name__ == '__main__':
     
     # 打印训练完成的信息
     print("\n训练任务按计划完成，GPT-2.0模型文件'GPT2.pt'已经输出至当前工作目录。")
+    
+    plot_loss_curve()  # 训练完成后绘制损失曲线
+    
     # 等待用户按下回车键后退出程序
     input('按回车键退出...')
     exit()
