@@ -45,4 +45,4 @@ if __name__ == '__main__':
             t_index = sentence.find('\t')
             sentence = sentence[t_index + 1:]
         # 使用模型生成回答并打印输出
-        print("输出:", model.answer(sentence))
+        print("输出:", model.answer(sentence), "\n")
