@@ -46,3 +46,4 @@ if __name__ == '__main__':
             sentence = sentence[t_index + 1:]
         # 使用模型生成回答并打印输出
         print("输出:", model.answer(sentence), "\n")
+        

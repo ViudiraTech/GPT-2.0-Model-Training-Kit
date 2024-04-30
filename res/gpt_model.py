@@ -441,3 +441,4 @@ class GPT(nn.Module):
         answer = "".join(answer)
         # 返回生成的回答
         return answer
+        
