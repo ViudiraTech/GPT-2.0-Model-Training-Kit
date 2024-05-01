@@ -173,7 +173,7 @@ def train_step(model, data_loader, optimizer, criterion, clip=1, print_every=Non
     return epoch_loss / len(data_loader), print_loss_avg if print_loss_avg != 0 else epoch_loss / len(data_loader)
 
 # 定义训练函数train，输入参数包括模型model和数据加载器data_loader
-def train(model, data_loader):
+def train(model, data_loader, model_path='GPT2.pt'):
 
     # 根据use_gpu变量判断是否使用GPU进行计算
     if use_gpu == 'GPU':
@@ -182,6 +182,10 @@ def train(model, data_loader):
     else:
         # 如果不使用GPU，则在CPU上定义损失函数
         criterion = nn.CrossEntropyLoss(ignore_index=0).cpu()
+
+    if os.path.isfile(model_path):
+        print(f'正在加载预训练模型权重：{model_path}\n')
+        model.load_state_dict(torch.load(model_path))
 
     # 使用Adam优化器初始化模型参数，学习率为1e-4
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
@@ -209,6 +213,8 @@ def train(model, data_loader):
 
         # 输出训练损失信息
         print(f'\tTrain Loss: {train_loss:.3f}')
+        
+    return model
 
 # 在训练完成后绘制损失曲线
 def plot_loss_curve():
@@ -268,12 +274,30 @@ if __name__ == '__main__':
     else:
         model = GPT().cpu()  # 使用CPU运算
 
-    # 这里注释掉的代码是用来加载预训练模型的，但实际代码中没有提供这部分的实现
-    # model.load_state_dict(torch.load('GPT2.pt'))
+    while True:
+        # 检查工作目录中是否存在模型文件，如果存在则加载模型
+        model_path = 'GPT2.pt'
+        if os.path.isfile(model_path):
+            inquire = input("检测到工作目录中已存在GPT-2.0模型文件'GPT2.pt'，是否继续训练？(Y/n):")
+            if inquire not in ["Y", "n"]:
+                print("输入错误！\n")
+            else:
+                if inquire == 'Y':
+                    print(f'\n将继续进行训练任务')
+                    print(f'正在加载预训练模型：{model_path}')
+                    model.load_state_dict(torch.load(model_path))
+                    train(model, data_loader, model_path)
+                    break
+                elif inquire == 'n':
+                    print('\n将进行新的训练任务\n')
+                    os.remove('GPT2.pt')
+                    train(model, data_loader)
+                    break
+        else:
+            # 调用train函数进行模型训练，这里的train函数和GPT类需要在其他地方定义
+            train(model, data_loader)
+            break
 
-    # 调用train函数进行模型训练，这里的train函数和GPT类需要在其他地方定义
-    train(model, data_loader)
-    
     # 打印训练完成的信息
     print("\n训练任务按计划完成，GPT-2.0模型文件'GPT2.pt'已经输出至当前工作目录。")
     
