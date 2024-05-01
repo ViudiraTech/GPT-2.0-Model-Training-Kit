@@ -225,6 +225,8 @@ def plot_loss_curve():
     plt.ylabel('Loss')  # 添加y轴标签
     plt.legend()  # 显示图例
     plt.show()  # 显示图形
+    # 保存图形到当前工作目录，文件名为'loss_curve.png'
+    plt.savefig('loss_curve.png')
 
 # 定义一个函数，用于打印模型的总参数数量和可训练参数数量
 def print_num_parameters(model):
