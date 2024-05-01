@@ -224,9 +224,9 @@ def plot_loss_curve():
     plt.xlabel('Epoch')  # 添加x轴标签
     plt.ylabel('Loss')  # 添加y轴标签
     plt.legend()  # 显示图例
-    plt.show()  # 显示图形
-    # 保存图形到当前工作目录，文件名为'loss_curve.png'
-    plt.savefig('loss_curve.png')
+    plt.draw()  # 强制渲染图形
+    plt.savefig('loss_curve.png')  # 保存图形到文件
+    plt.close()  # 关闭图形，释放内存
 
 # 定义一个函数，用于打印模型的总参数数量和可训练参数数量
 def print_num_parameters(model):
@@ -302,7 +302,8 @@ if __name__ == '__main__':
 
     # 打印训练完成的信息
     print("\n训练任务按计划完成，GPT-2.0模型文件'GPT2.pt'已经输出至当前工作目录。")
-    
+   
+    plt.ioff()   
     plot_loss_curve()  # 训练完成后绘制损失曲线
     
     # 等待用户按下回车键后退出程序
