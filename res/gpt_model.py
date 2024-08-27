@@ -9,13 +9,14 @@ import numpy as np # 导入NumPy库，一个用于科学计算的库，常用于
 import time # 导入time模块，用于获取时间信息，常用于性能测试
 from tqdm import tqdm # 从tqdm库导入进度条工具，用于在控制台显示进度信息
 import os # 导入os模块，用于与操作系统交互，如文件路径操作等
+import torch_directml # 导入PyTorch库，让torch支持DML
 
 # 无限循环，用于让用户选择计算设备
 while True:
     # 获取用户输入的运算方式
-    use_gpu = input('请选择运算方式("GPU"或"CPU"):')
+    use_gpu = input('请选择运算方式("GPU"或"CPU",AMD显卡用户输入"DML"):')
     # 检查输入是否为"GPU"或"CPU"，如果不是，则提示错误
-    if use_gpu not in ["GPU", "CPU"]:
+    if use_gpu not in ["GPU", "CPU", "DML"]:
         print("输入错误！\n")
     else:
         # 如果用户选择GPU并且CUDA可用，则继续
@@ -25,7 +26,14 @@ while True:
             input('按回车键退出...')
             # 退出程序
             exit()
-        # 如果输入正确或CUDA不可用，退出循环
+        # 如果用户选择GPU并且CUDA可用，则继续
+        if use_gpu == 'DML' and not torch_directml.is_available():
+            print("\nDML 在您的 GPU 上不可用,请选择CPU运算。")
+            # 等待用户按下回车键后退出程序
+            input('按回车键退出...')
+            # 退出程序
+            exit()
+        # 如果输入正确或CUDA\DML不可用，退出循环
         print()
         break
 
@@ -45,6 +53,9 @@ except FileNotFoundError:
 if use_gpu == 'GPU':
     # 如果使用GPU，创建一个指向CUDA设备的torch设备对象
     device = torch.device("cuda")
+elif use_gpu == 'DML':
+    # 如果使用AMD显卡，创建一个指向DML设备的torch设备对象
+    device = torch_directml.device(0)
 else:
     # 如果使用CPU，创建一个指向CPU的torch设备对象
     device = torch.device("cpu")
@@ -162,6 +173,9 @@ def get_attn_subsequence_mask(seq):
     # 根据是否使用GPU来决定掩码的运行设备
     if use_gpu == 'GPU':
         # 如果使用GPU，则将掩码转移到GPU上
+        subsequence_mask = subsequence_mask.to(device)
+    elif use_gpu == 'DML':
+        # 如果使用AMD显卡，则将掩码转移到AMD显卡上
         subsequence_mask = subsequence_mask.to(device)
     else:
         # 如果不使用GPU，则将掩码转移到CPU上
@@ -337,6 +351,8 @@ class Decoder(nn.Module):
         # 根据是否使用GPU来生成位置编码
         if use_gpu == 'GPU':
             pos = torch.arange(seq_len, dtype=torch.long, device=device)  # 使用GPU运算
+        elif use_gpu == 'DML':
+            pos = torch.arange(seq_len, dtype=torch.long, device=device)  # 使用AMD显卡运算
         else:
             pos = torch.arange(seq_len, dtype=torch.long).cpu()  # 使用CPU运算
 

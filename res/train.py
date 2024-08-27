@@ -2,6 +2,7 @@
 # GPL-2.0 LICENSE ¯\_(ツ)_/¯
 
 import json # 导入json模块，用于处理JSON数据格式
+import torch_directml # 导入PyTorch库，让torch支持DML
 import torch # 导入PyTorch库，这是一个流行的深度学习框架
 import torch.utils.data as Data # 导入PyTorch的数据加载工具，用于加载和管理数据集
 from torch import nn, optim # 从PyTorch库中导入神经网络模块，包含构建模型所需的层和函数
@@ -135,6 +136,9 @@ def train_step(model, data_loader, optimizer, criterion, clip=1, print_every=Non
         # 根据是否使用GPU来决定数据和模型的运行设备
         if use_gpu == 'GPU':
             # 如果使用GPU，则将输入和输出张量转移到GPU上
+            dec_inputs, dec_outputs = dec_inputs.to(device), dec_outputs.to(device)
+        elif use_gpu == 'DML':
+            # 如果使用AMD显卡，则将输入和输出张量转移到AMD显卡上
             dec_inputs, dec_outputs = dec_inputs.to(device), dec_outputs.to(device)
         else:
             # 如果不使用GPU，则将它们转移到CPU上
@@ -273,6 +277,8 @@ if __name__ == '__main__':
     # 根据环境变量use_gpu的值决定使用GPU还是CPU进行模型训练
     if use_gpu == 'GPU':
         model = GPT().to(device)  # 使用GPU运算
+    elif use_gpu == 'DML':
+        model = GPT().to(device)  # 使用AMD显卡运算
     else:
         model = GPT().cpu()  # 使用CPU运算
 

@@ -1,6 +1,9 @@
 # By ViudiraTech
 # GPL-2.0 LICENSE ¯\_(ツ)_/¯
 
+# 导入PyTorch库，让torch支持DML
+import torch_directml
+
 # 导入PyTorch库，用于构建和训练神经网络
 import torch
 
@@ -17,6 +20,9 @@ if __name__ == '__main__':
     if use_gpu == 'GPU':
         device = torch.device("cuda")  # 如果可用，使用GPU进行加速
         model = GPT().to(device)  # 将模型移动到GPU上
+    elif use_gpu == 'DML':
+        device = torch_directml.device(0)  # 如果可用，使用AMD显卡进行加速
+        model = GPT().to(device)  # 将模型移动到AMD显卡上
     else:
         device = torch.device("cpu")  # 如果不使用GPU，则使用CPU
         model = GPT().cpu()  # 将模型限制在CPU上
