@@ -1,5 +1,5 @@
 # By ViudiraTech
-# GPL-2.0 LICENSE ¯\_(ツ)_/¯
+# MIT LICENSE ¯\_(ツ)_/¯
 
 # 导入PyTorch库，让torch支持DML
 import torch_directml

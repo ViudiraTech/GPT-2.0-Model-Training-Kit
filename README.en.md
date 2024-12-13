@@ -51,7 +51,7 @@ Run demo.py scripts to evaluate and test your model:
 
 ### 🎨 License
 
-This project is licensed under the GPL-2.0 license. This means that you are free to use, modify, and distribute the code, as long as you comply with the terms of the license. 🌐 However, keep in mind that it is very important to respect the work and contributions of others.
+This project is licensed under the MIT license. This means that you are free to use, modify, and distribute the code, as long as you comply with the terms of the license. 🌐 However, keep in mind that it is very important to respect the work and contributions of others.
 
 ### 🤝 Contribute
 

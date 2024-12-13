@@ -1,5 +1,5 @@
 # By ViudiraTech
-# GPL-2.0 LICENSE ¯\_(ツ)_/¯
+# MIT LICENSE ¯\_(ツ)_/¯
 
 import json # 导入json模块，用于处理JSON数据格式
 import torch_directml # 导入PyTorch库，让torch支持DML
